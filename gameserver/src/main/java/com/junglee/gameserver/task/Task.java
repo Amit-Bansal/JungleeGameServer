@@ -1,5 +1,5 @@
 package com.junglee.gameserver.task;
 
-public interface Task {
-	public void process();
+public abstract class Task {
+	public abstract void process();
 }

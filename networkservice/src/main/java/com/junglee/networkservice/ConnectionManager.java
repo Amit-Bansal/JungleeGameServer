@@ -3,8 +3,8 @@ package com.junglee.networkservice;
 public interface ConnectionManager {
 	
 	    public void start();
-	    public void handleConnection() ;
+	    public void handleConnection(String data) ;
 		
-		public void registerHandler(ClientInterface handler);
+		public void registerHandler(ConnectionInterface handler);
 		
 }

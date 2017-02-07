@@ -3,7 +3,7 @@ package com.junglee.gameserver.message;
 import com.junglee.gameserver.table.Table;
 
 
-public class LeaveTableMessage  implements Message {
+public class LeaveTableMessage  extends Message {
 
 	public void serialize() {
 		// TODO Auto-generated method stub

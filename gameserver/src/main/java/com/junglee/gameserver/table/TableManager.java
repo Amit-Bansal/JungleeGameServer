@@ -32,13 +32,13 @@ public class TableManager {
 		if (table == null || table.getPlayerCount() >= MaxPlayersLimit) {
 			table = createTable();
 		}
-		Player player= PlayerManager.getPlayer(msg.playerId);
+		Player player= PlayerManager.getInstance().getPlayer(msg.playerId);
 		addPlayerToTable(table, player);
 	}
 	
 	public static void handlePlayerLeaveTableMessage(LeaveTableMessage msg) {
 		
-		Player player= PlayerManager.getPlayer(msg.playerId);
+		Player player= PlayerManager.getInstance().getPlayer(msg.playerId);
 		msg.getTable().removePlayer(player);
 		if (msg.getTable().getPlayerCount() == 0) {
 			destroyTable(msg.getTable());

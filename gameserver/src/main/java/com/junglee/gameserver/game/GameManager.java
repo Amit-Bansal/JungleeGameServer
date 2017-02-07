@@ -1,5 +1,6 @@
 package com.junglee.gameserver.game;
 
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -9,24 +10,33 @@ import com.junglee.gameserver.table.TableManager;
 
 public class GameManager {
 	
-	public void startGame() {
-		game = new Game();
-		timer = new Timer();
-		timer.schedule(new TimerTask() {
-		    @Override
-		    public void run() {
-		    	endGame();
-		    }
-		}, 0, 60000);
+	private static GameManager instance = null;
+	private static Object mutex = new Object();
+	private GameManager() {}
+	
+	public static GameManager getInstance() {
+		if (instance == null) {
+			synchronized (mutex) {
+				if (instance == null) {
+					instance = new GameManager();
+				}
+			}
+		}
+		return instance;
 	}
-	public void endGame() {
-		timer.cancel();
+	
+	public void startGame() {
+		Game game = new Game();
+		games.put(game.getGameId(), game);
+		game.startGame();
+	}
+	
+	public void endGame(Game game) {
 		TableManager.updateTable(game.getTable(), TableState.WAITING_FOR_PLAYERS);
 		for (Player player:game.getPlayerList())
 		    player.incrementGamesPlayed();
+		games.remove(game.getGameId());
 	}
 	
-	
-	private Timer timer;
-	private Game game;
+	private static HashMap<Integer, Game> games;
 }
