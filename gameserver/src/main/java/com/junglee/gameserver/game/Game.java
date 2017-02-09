@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.junglee.dbservice.model.*;
+import com.junglee.gameserver.app.App;
 import com.junglee.gameserver.table.Table;
 import com.junglee.gameserver.table.TableManager;
 import com.junglee.gameserver.table.TableState;
@@ -23,7 +24,7 @@ public class Game {
 	
 	public void gameTimeout() {
 		timer.cancel();
-		GameManager.getInstance().endGame(this);
+		App.getInstance().getGameManager().endGame(this);
 	}
 	
 	public List<Player> getPlayerList() {

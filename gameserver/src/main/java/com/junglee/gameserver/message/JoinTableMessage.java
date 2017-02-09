@@ -1,18 +1,13 @@
 package com.junglee.gameserver.message;
 
-import com.junglee.dbservice.model.Player;
 
 public class JoinTableMessage extends Message {
 
-	public void serialize() {
+	@Override
+	public String serialize() {
+		return null;
 		// TODO Auto-generated method stub
 		
 	}
 
-	public Message deserialize() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public int playerId;
 }

@@ -1,14 +1,13 @@
 package com.junglee.gameserver.session;
 
-import java.util.List;
 
 import com.junglee.dbservice.model.Player;
-import com.junglee.gameserver.game.Game;
+import com.junglee.gameserver.app.App;
+import com.junglee.gameserver.message.JoinTableMessage;
 import com.junglee.gameserver.message.Message;
-import com.junglee.gameserver.message.MessageType;
 import com.junglee.gameserver.task.Task;
 import com.junglee.networkservice.ClientConnection;
-import com.junglee.networkservice.ConnectionContext;
+
 
 public class ClientSession extends Task {
 	enum Status
@@ -18,7 +17,7 @@ public class ClientSession extends Task {
 	
 	public ClientSession(ClientConnection connection){
 		handler = connection;
-		status = Status.NOT_CONNECTED;
+		setStatus(Status.NOT_CONNECTED);
 	}
 	
 	public int getSessionId() {
@@ -33,6 +32,12 @@ public class ClientSession extends Task {
 		switch(currentMsg.getType()){
 			case USER_LOGIN:
 				break;
+			case USER_SIGNUP:
+				break;
+			case JOIN_TABLE:
+				JoinTableMessage joinMSg = (JoinTableMessage)currentMsg;
+				App.getInstance().getTableManager().handlePlayerJoinTableMessage(joinMSg);
+				break;
 			default:
 				break;
 		}		
@@ -45,11 +50,31 @@ public class ClientSession extends Task {
 	public void setCurrentMsg(Message currentMsg) {
 		this.currentMsg = currentMsg;
 	}
+	
+	public void sendMessage(Message msg){
+		String msgStr = msg.serialize();
+		handler.sendMessage(msgStr);
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
+	public void setPlayer(Player player) {
+		this.player = player;
+	}
 
 	private Status status;
-	private Player player;
 	private ClientConnection handler;
-	private List<Game> games;
 	private int sessionId;
 	private Message currentMsg;
+	private Player player;
 }

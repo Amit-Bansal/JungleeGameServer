@@ -18,6 +18,4 @@ public class ConnectionHandler extends ConnectionInterface{
 		manager.registerHandler(this);
 	}
 	
-	//private HashMap<ClientConnection, ClientSession> sessionMap;
-
 }

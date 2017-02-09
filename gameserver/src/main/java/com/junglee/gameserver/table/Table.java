@@ -5,7 +5,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.junglee.dbservice.model.Player;
-import com.junglee.gameserver.game.GameManager;
+import com.junglee.gameserver.app.App;
+
 
 public class Table {
 	public Table() {
@@ -94,7 +95,7 @@ public class Table {
 	
 	public void startGame() {
 		currentState = TableState.IN_GAME;
-		GameManager.getInstance().startGame();
+		App.getInstance().getGameManager().startGame();
 	}
 	
 	private int TableID;

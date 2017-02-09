@@ -1,10 +1,12 @@
 package com.junglee.gameserver.message;
-public abstract class Message {
+public class Message {
 	
-    public abstract void serialize();
+    public String serialize(){
+    	return null;
+    }
+    
     public static Message deserialize(String msgStr){
-    	Message msg = null; //write message converter here
-    	return msg;
+    	return new Message();
     }
     
 
@@ -14,15 +16,18 @@ public abstract class Message {
 	public void setType(MessageType type) {
 		this.type = type;
 	}
-
-	public Integer getSessionId() {
+	
+	
+	public int getSessionId() {
 		return sessionId;
 	}
-	public void setSessionId(Integer sessionId) {
+
+	public void setSessionId(int sessionId) {
 		this.sessionId = sessionId;
 	}
 
+	private int sessionId;
+
 	private MessageType type;
-	private Integer sessionId;
 }
 

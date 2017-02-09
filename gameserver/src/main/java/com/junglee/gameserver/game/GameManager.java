@@ -10,20 +10,8 @@ import com.junglee.gameserver.table.TableManager;
 
 public class GameManager {
 	
-	private static GameManager instance = null;
-	private static Object mutex = new Object();
-	private GameManager() {}
-	
-	public static GameManager getInstance() {
-		if (instance == null) {
-			synchronized (mutex) {
-				if (instance == null) {
-					instance = new GameManager();
-				}
-			}
-		}
-		return instance;
-	}
+	public GameManager() {}
+
 	
 	public void startGame() {
 		Game game = new Game();

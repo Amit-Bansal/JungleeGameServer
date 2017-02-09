@@ -3,25 +3,12 @@ package com.junglee.gameserver.player;
 import java.util.HashMap;
 
 import com.junglee.dbservice.model.Player;
-import com.junglee.gameserver.game.GameManager;
+
 
 public class PlayerManager {
 	
-	private static PlayerManager instance = null;
-	private static Object mutex = new Object();
-	private PlayerManager() {}
-	
-	public static PlayerManager getInstance() {
-		if (instance == null) {
-			synchronized (mutex) {
-				if (instance == null) {
-					instance = new PlayerManager();
-				}
-			}
-		}
-		return instance;
-	}
-	
+	public PlayerManager() {}
+		
 	public void loadPlayerDetails(){}
 	public void createNewPlayer(){}
 	public void sendPlayerDetailsToClient(){}

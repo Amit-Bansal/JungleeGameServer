@@ -3,29 +3,16 @@ package com.junglee.gameserver.session;
 import java.util.HashMap;
 
 import com.junglee.gameserver.app.AppContext;
-import com.junglee.gameserver.game.GameManager;
 import com.junglee.gameserver.message.Message;
 import com.junglee.gameserver.task.ExecutorScheduler;
 import com.junglee.networkservice.*;
 
 
-public class ClientSessionManager extends ClientInterface{
+public class SessionManager extends ClientInterface{
 	
-	private static ClientSessionManager instance = null;
-	private static Object mutex = new Object();
-	private ClientSessionManager() {}
-	
-	public static ClientSessionManager getInstance() {
-		if (instance == null) {
-			synchronized (mutex) {
-				if (instance == null) {
-					instance = new ClientSessionManager();
-				}
-			}
-		}
-		return instance;
-	}
-	
+
+	public SessionManager() {}
+		
 	public void handleMessage(String msgStr){
 		Message msg = Message.deserialize(msgStr);
 		Integer sessionId = msg.getSessionId();
@@ -41,8 +28,9 @@ public class ClientSessionManager extends ClientInterface{
 		return session;
 	}
 	
-	public ClientSession getSession(){
-		return null;
+	public ClientSession getSession(int sessionId){
+		
+		return clientSession.get(sessionId);
 	}
 	
 	public void register(){
