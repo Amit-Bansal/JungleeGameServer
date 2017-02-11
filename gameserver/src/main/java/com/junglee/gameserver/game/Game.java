@@ -1,14 +1,12 @@
 package com.junglee.gameserver.game;
 
-import java.util.List;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.junglee.dbservice.model.*;
-import com.junglee.gameserver.app.App;
-import com.junglee.gameserver.table.Table;
-import com.junglee.gameserver.table.TableManager;
-import com.junglee.gameserver.table.TableState;
+import org.json.JSONObject;
+
+import com.junglee.gameserver.application.App;
 
 public class Game {
 	
@@ -24,25 +22,23 @@ public class Game {
 	
 	public void gameTimeout() {
 		timer.cancel();
+		
 		App.getInstance().getGameManager().endGame(this);
 	}
 	
-	public List<Player> getPlayerList() {
-		return playerList;
-	}
-	
-	public Table getTable() {
-		return table;
-	}
-	
-	
+		
 	public int getGameId() {
 		return gameId;
 	}
+	
+	public void import_data(JSONObject data){
+		
+	}
+	
+	public JSONObject export_data(){
+		return null;
+	}
 
-
-	private List<Player> playerList;
-	private Table table;
 	private Timer timer;
 	private int gameId;
 }

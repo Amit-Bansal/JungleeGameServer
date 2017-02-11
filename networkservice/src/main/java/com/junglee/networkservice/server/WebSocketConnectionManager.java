@@ -1,8 +1,8 @@
 package com.junglee.networkservice.server;
 
-import java.net.Socket;
+
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
 
 import com.junglee.networkservice.*;
@@ -19,8 +19,16 @@ public class WebSocketConnectionManager implements ConnectionManager {
 	@Override
 	public void handleConnection(String data) {
 		ConnectionContext context = new ConnectionContext(data);
+		ClientConnection connection = new WebSocketClientConnection(context);
+		
 		for(ConnectionInterface handler : handlers)   
-			handler.handleConnection(context);
+			handler.handleConnection(connection);
+	}
+	
+	@Override
+	public void handleDisconnected() {		
+		for(ConnectionInterface handler : handlers)   
+			handler.handleDisconnected();
 	}
 	
 	

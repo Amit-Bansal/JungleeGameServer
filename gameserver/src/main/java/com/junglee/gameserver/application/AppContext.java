@@ -1,4 +1,4 @@
-package com.junglee.gameserver.app;
+package com.junglee.gameserver.application;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ConfigurableApplicationContext;

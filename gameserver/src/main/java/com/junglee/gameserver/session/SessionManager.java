@@ -2,29 +2,37 @@ package com.junglee.gameserver.session;
 
 import java.util.HashMap;
 
-import com.junglee.gameserver.app.AppContext;
+import com.junglee.gameserver.application.App;
+import com.junglee.gameserver.event.Event;
+import com.junglee.gameserver.event.EventType;
 import com.junglee.gameserver.message.Message;
-import com.junglee.gameserver.task.ExecutorScheduler;
 import com.junglee.networkservice.*;
 
 
 public class SessionManager extends ClientInterface{
 	
-
 	public SessionManager() {}
 		
-	public void handleMessage(String msgStr){
+
+	public void handleMessage(ClientConnection connection, String msgStr){
 		Message msg = Message.deserialize(msgStr);
-		Integer sessionId = msg.getSessionId();
-		ClientSession session = clientSession.get(sessionId);
+		ClientSession session = clientSession.get(connection);
 		session.setCurrentMsg(msg);
-		ExecutorScheduler.getInstance().processTask(session);
+		
+		App.getInstance().getTaskScheduler().processTask(session);
+	}
+	
+	public void handleConnectionClose(ClientConnection connection){
+		ClientSession session = clientSession.get(connection);
+		session.handleClose();
+		Event connectionCloseEvent = new Event(session, EventType.ClientDisconnected);
+		App.getInstance().getEventDispather().submit(connectionCloseEvent);
 	}
 	
 	public ClientSession createSession(ClientConnection connection){
 		
 		ClientSession session = new ClientSession(connection);
-		clientSession.put(session.getSessionId(), session);
+		clientSession.put(connection, session);
 		return session;
 	}
 	
@@ -34,9 +42,10 @@ public class SessionManager extends ClientInterface{
 	}
 	
 	public void register(){
-		ClientConnection manager = (ClientConnection)AppContext.getBean("ClientConnection");
-		manager.registerHandler(this);
+		ClientEventDispatcher.getInstance().registerHandler(this);
 	}
 	
-	private HashMap<Integer, ClientSession> clientSession;
+	private HashMap<ClientConnection, ClientSession> clientSession;
+
+
 }

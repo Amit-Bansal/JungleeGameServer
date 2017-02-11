@@ -1,10 +1,9 @@
 package com.junglee.gameserver.session;
 
 
-import com.junglee.dbservice.model.Player;
-import com.junglee.gameserver.app.App;
-import com.junglee.gameserver.message.JoinTableMessage;
-import com.junglee.gameserver.message.Message;
+import com.junglee.gameserver.player.*;
+import com.junglee.gameserver.application.App;
+import com.junglee.gameserver.message.*;
 import com.junglee.gameserver.task.Task;
 import com.junglee.networkservice.ClientConnection;
 
@@ -12,12 +11,13 @@ import com.junglee.networkservice.ClientConnection;
 public class ClientSession extends Task {
 	enum Status
 	{
-		NOT_CONNECTED, CONNECTING, CONNECTED, CLOSED
+		NOT_CONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, CLOSED
 	}
 	
 	public ClientSession(ClientConnection connection){
 		handler = connection;
-		setStatus(Status.NOT_CONNECTED);
+		setStatus(Status.CONNECTED);
+		player = null;
 	}
 	
 	public int getSessionId() {
@@ -30,17 +30,61 @@ public class ClientSession extends Task {
 	@Override
 	public void process() {
 		switch(currentMsg.getType()){
-			case USER_LOGIN:
+			case USER_SIGNUP:{
+				SignupMessage msg = (SignupMessage)currentMsg;
+				SignupResponse response = new SignupResponse();
+				if(App.getInstance().getPlayerManager().signup(msg.id, msg.name, msg.password))
+					response.msg = "Account created successfully";
+				else
+					response.msg = "Could not signup";
+				sendMessage(response);
 				break;
-			case USER_SIGNUP:
+			}
+			case USER_LOGIN:{
+				LoginMessage msg = (LoginMessage)currentMsg;
+				player = App.getInstance().getPlayerManager().loginPlayer(msg.id, msg.password, this);
+				LoginResponse response = new LoginResponse();
+				if (player == null){
+					response.code = 401;
+					response.msg = "Not Authorised";
+				}
+				response.clientName = player.getName();
+				response.code = 200;
+				sendMessage(response);
+				status = Status.AUTHENTICATED;
 				break;
-			case JOIN_TABLE:
-				JoinTableMessage joinMSg = (JoinTableMessage)currentMsg;
-				App.getInstance().getTableManager().handlePlayerJoinTableMessage(joinMSg);
+			}
+			case USER_LOGOUT:{
+				App.getInstance().getTableManager().handlePlayerLogout(player);
+				App.getInstance().getPlayerManager().logoutPlayer(player);
+				status = Status.CONNECTED;
+				player = null;
 				break;
+			}
+			case JOIN_TABLE:{
+				//JoinTableMessage msg = (JoinTableMessage)currentMsg;
+				App.getInstance().getTableManager().joinPlayerToTable(player);
+				
+				break;
+			}
+			case LEAVE_TABLE:{
+				//LeaveTableMessage msg = (LeaveTableMessage)currentMsg;
+				App.getInstance().getTableManager().leavePlayerFromTable(player);
+				break;
+			}
 			default:
 				break;
 		}		
+	}
+	
+	public void handleClose(){
+		status = Status.NOT_CONNECTED;
+		player = null;
+	}
+	
+	public void handleDisconnected(){
+		status = Status.NOT_CONNECTED;
+		player = null;
 	}
 	
 	public Message getCurrentMsg() {

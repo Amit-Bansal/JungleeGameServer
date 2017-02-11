@@ -1,37 +1,71 @@
 package com.junglee.gameserver.table;
 
+import java.util.HashMap;
 import java.util.List;
 
-import com.junglee.dbservice.model.Player;
-import com.junglee.gameserver.app.App;
-import com.junglee.gameserver.message.JoinTableMessage;
-import com.junglee.gameserver.message.LeaveTableMessage;
+import com.junglee.gameserver.event.Event;
+import com.junglee.gameserver.event.EventListener;
+import com.junglee.gameserver.player.*;
+import com.junglee.gameserver.session.ClientSession;
 
-
-public class TableManager {
+public class TableManager implements EventListener{
 	
-	public TableManager() {}
+	public TableManager() {
+	}
 
 	
 	public static final int MaxPlayersLimit = 5;
 	public static final int MinPlayersLimit = 3;
 	
-	public  void handlePlayerJoinTableMessage(JoinTableMessage msg) {
+	public  void joinPlayerToTable(Player player) {
 		Table table = getWaitingTable();
 		if (table == null || table.getPlayerCount() >= MaxPlayersLimit) {
 			table = createTable();
 		}
-		Player player= App.getInstance().getSessionManager().getSession(msg.getSessionId()).getPlayer();
+		playerTableMap.put(player, table);
 		addPlayerToTable(table, player);
+		//BroadCast message to all players of current table
+		String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "joined";
+		table.sendMessageToPlayers(broadcastMsg);
+	}
+		
+	public void leavePlayerFromTable(Player player) {
+		Table table = playerTableMap.get(player);
+		removePlayerFromTable(player, table);
+		//BroadCast message to all players of current table
+		String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Left";
+		table.sendMessageToPlayers(broadcastMsg);
 	}
 	
-	public void handlePlayerLeaveTableMessage(LeaveTableMessage msg) {
-		
-		Player player= App.getInstance().getSessionManager().getSession(msg.getSessionId()).getPlayer();
-		msg.getTable().removePlayer(player);
-		if (msg.getTable().getPlayerCount() == 0) {
-			destroyTable(msg.getTable());
+	public void handlePlayerLogout(Player player) {
+		if(playerTableMap.containsKey(player)){
+			Table table = playerTableMap.get(player);
+			removePlayerFromTable(player, table);
+			//BroadCast message to all players of current table
+			String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Disconnected";
+			table.sendMessageToPlayers(broadcastMsg);
 		}
+	}
+	
+	@Override
+	public void executeEvent(Event event) {
+		ClientSession session = (ClientSession)event.getSource();
+		Player player = session.getPlayer();
+		if(playerTableMap.containsKey(player)){
+			Table table = playerTableMap.get(player);
+			removePlayerFromTable(player, table);
+			//BroadCast message to all players of current table
+			String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Disconnected";
+			table.sendMessageToPlayers(broadcastMsg);
+		}
+	}
+	
+	private void removePlayerFromTable(Player player, Table table){
+		table.removePlayer(player);
+		if (table.getPlayerCount() == 0) {
+			destroyTable(table);
+		}
+		playerTableMap.remove(player);
 	}
 	
 	private Table createTable() {
@@ -60,7 +94,8 @@ public class TableManager {
 				return null;
 		}
 		return null;
-	}
+	}	
 	
+	private HashMap<Player, Table> playerTableMap;
 	private  List<Table> currentTables;
 }

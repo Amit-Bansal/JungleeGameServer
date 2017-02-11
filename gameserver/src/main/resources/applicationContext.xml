@@ -5,18 +5,20 @@
 	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
+<import resource="classpath:dbApplicationContext.xml"/>
+
   <context:component-scan base-package="com.junglee.gameserver.*" />
-    
+  <context:component-scan base-package="com.junglee.dbservice.*" />
+     
   <tx:annotation-driven/>
-  
-  <bean id="networkServiceProxy" class="com.javacodegeeks.snippets.enterprise.service.network.NetworkServiceProxy">  
-        <constructor-arg>  
-            <bean id="networkServiceImp" class="com.javacodegeeks.snippets.enterprise.service.network.ABCServiceClient">  
-            </bean>  
-        </constructor-arg>  
-  </bean>  
-  
-  <bean id="schedulerService" class="com.javacodegeeks.snippets.enterprise.service.scheduler.ExecutorScheduler">    
+    
+  <bean id="connectionManager" class="com.junglee.networkservice.server.WebSocketConnectionManager">  
+  </bean>   
+    
+  <bean id="schedulerService" class="com.junglee.gameserver.task.ExecutorScheduler">    
+  </bean> 
+    
+  <bean id="databaseService" class="com.junglee.dbservice.service.DatabaseServiceMySQLImpl">
   </bean> 
   
 </beans>

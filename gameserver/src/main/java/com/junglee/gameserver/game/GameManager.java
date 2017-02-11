@@ -1,30 +1,52 @@
 package com.junglee.gameserver.game;
 
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import com.junglee.dbservice.model.*;
-import com.junglee.gameserver.table.TableState;
-import com.junglee.gameserver.table.TableManager;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class GameManager {
+import com.junglee.dbservice.service.DatabaseService;
+import com.junglee.gameserver.application.App;
+import com.junglee.gameserver.event.Event;
+import com.junglee.gameserver.event.EventListener;
+import com.junglee.gameserver.player.Player;
+import com.junglee.gameserver.table.Table;
+
+@Component
+public class GameManager implements EventListener{
 	
-	public GameManager() {}
+	@Autowired
+	DatabaseService databaseService;
+	
+	public GameManager() {
+	}
 
 	
-	public void startGame() {
-		Game game = new Game();
-		games.put(game.getGameId(), game);
+	public Game startGame(Table table) {
+		Game game = new Game();		
+		gamesTableMap.put(game, table);
 		game.startGame();
+		
+		JSONObject gameObj = game.export_data();
+		App.getInstance().getDbService().persistGame(gameObj);
+		return game;
 	}
 	
 	public void endGame(Game game) {
-		TableManager.updateTable(game.getTable(), TableState.WAITING_FOR_PLAYERS);
-		for (Player player:game.getPlayerList())
+		Table table = gamesTableMap.get(game);
+		for (Player player:table.getPlayerList())
 		    player.incrementGamesPlayed();
-		games.remove(game.getGameId());
+		
+		JSONObject gameObj = game.export_data();
+		databaseService.updateGame(gameObj);
+		gamesTableMap.remove(game);
 	}
 	
-	private static HashMap<Integer, Game> games;
+	@Override
+	public void executeEvent(Event event) {
+		
+	}
+	
+	private static HashMap<Game, Table> gamesTableMap;
 }

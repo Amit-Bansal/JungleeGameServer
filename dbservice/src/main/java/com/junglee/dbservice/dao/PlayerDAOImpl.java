@@ -4,7 +4,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.junglee.dbservice.model.Player;
+import com.junglee.dbservice.model.PlayerModel;
 
 @Repository("playerDAO")
 public class PlayerDAOImpl implements PlayerDAO {
@@ -13,22 +13,22 @@ public class PlayerDAOImpl implements PlayerDAO {
 	private SessionFactory sessionFactory;
 
 	@Override
-	public void persistPlayer(Player player) {
+	public void persistPlayer(PlayerModel player) {
 		sessionFactory.getCurrentSession().persist(player);
 	}
 
 	@Override
-	public Player findPlayerById(String id) {
-		return (Player) sessionFactory.getCurrentSession().get(Player.class, id);
+	public PlayerModel findPlayerById(String id) {
+		return (PlayerModel) sessionFactory.getCurrentSession().get(PlayerModel.class, id);
 	}
 
 	@Override
-	public void updatePlayer(Player player) {
+	public void updatePlayer(PlayerModel player) {
 		sessionFactory.getCurrentSession().update(player);
 
 	}
 	@Override
-	public void deletePlayer(Player player) {
+	public void deletePlayer(PlayerModel player) {
 		sessionFactory.getCurrentSession().delete(player);
 
 	}

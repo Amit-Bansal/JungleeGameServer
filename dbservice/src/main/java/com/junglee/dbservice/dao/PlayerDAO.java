@@ -1,15 +1,15 @@
 package com.junglee.dbservice.dao;
 
-import com.junglee.dbservice.model.Player;
+import com.junglee.dbservice.model.PlayerModel;
 
 public interface PlayerDAO {
 	
-		  void persistPlayer(Player player);
+		  void persistPlayer(PlayerModel player);
 		  
-		  Player findPlayerById(String id);
+		  PlayerModel findPlayerById(String id);
 		  
-		  void updatePlayer(Player player);
+		  void updatePlayer(PlayerModel player);
 		  
-		  void deletePlayer(Player player);
+		  void deletePlayer(PlayerModel player);
 		  
 }
