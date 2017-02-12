@@ -2,41 +2,41 @@ package com.junglee.dbservice.service;
 
 import org.springframework.stereotype.Service;
 
-import org.json.*;
+import com.junglee.dbservice.model.GameModel;
+import com.junglee.dbservice.model.PlayerModel;
 
 
 @Service("databaseServiceNoSQLImpl")
 public class DatabaseServiceNoSQLImpl implements DatabaseService{
 
 	@Override
-	public void persistPlayer(JSONObject player) {	
+	public void persistPlayer(PlayerModel player) {	
 	}
 	@Override
-	public void updatePlayer(JSONObject player) {	
+	public void updatePlayer(PlayerModel player) {	
 	}
 	@Override
-	public JSONObject findPlayerById(String id) {
+	public PlayerModel findPlayerById(String id) {
 		return null;
 	}
 	@Override
-	public void deletePlayer(JSONObject player) {	
+	public void deletePlayer(PlayerModel player) {	
 	}
 	
 	
 	
 	@Override
-	public void persistGame(JSONObject game){}
+	public void persistGame(GameModel game){}
 	 
 	@Override
-	public JSONObject findGameById(String id){
-		JSONObject obj = null;
-		return obj;
+	public GameModel findGameById(String id){
+		return null;
 	}
 	
 	@Override
-	public void updateGame(JSONObject game){}
+	public void updateGame(GameModel game){}
 	
 	@Override
-	public void deleteGame(JSONObject game){}
+	public void deleteGame(GameModel game){}
 	
 }

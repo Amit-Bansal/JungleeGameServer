@@ -1,44 +1,46 @@
 package com.junglee.gameserver.player;
 
-import org.json.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
+
+import java.sql.Timestamp;
 import java.util.HashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.dbservice.service.DatabaseService;
-import com.junglee.gameserver.application.App;
 import com.junglee.gameserver.event.Event;
 import com.junglee.gameserver.event.EventListener;
 import com.junglee.gameserver.session.ClientSession;
 
-import java.sql.Timestamp;
-
+@Component
 public class PlayerManager implements EventListener{
 		
-	public PlayerManager() {
-	}
+	@Autowired
+	DatabaseService databaseService;
 	
 	public boolean signup(String id, String name, String password){
-		Player player = new Player();
+		PlayerModel player = new PlayerModel();
 		player.setId(id);
 		player.setName(name);
-		JSONObject playerObj = player.export_data();
-		App.getInstance().getDbService().persistPlayer(playerObj);
+		databaseService.persistPlayer(player);
 		return true;
 	}
 			
-	private Player loadPlayer(String id){
-		Player player = new Player();
-		JSONObject playerObj = App.getInstance().getDbService().findPlayerById(id);
-		player.import_data(playerObj);
+	private PlayerModel loadPlayer(String id){
+		PlayerModel player =  databaseService.findPlayerById(id);
 		return player;
 	}
 	
-	public Player loginPlayer(String id, String password, ClientSession session){
+	public PlayerModel loginPlayer(String id, String password, ClientSession session){
 		//verify player credentials - to do
-		Player player = loadPlayer(id);
+		PlayerModel player = loadPlayer(id);
 		if (player != null){
-			playerMap.put(player, session);
+			synchronized(playerMap)
+			{
+				playerMap.put(player, session);
+			}
 			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 			player.setLastLoginTime(timestamp);
 		}
@@ -46,29 +48,34 @@ public class PlayerManager implements EventListener{
 
 	}
 	
-	public void logoutPlayer(Player player){
+	public void logoutPlayer(PlayerModel player){
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		player.setLastLogoutTime(timestamp);
-		JSONObject playerObj = player.export_data();
-		App.getInstance().getDbService().updatePlayer(playerObj);
-		playerMap.remove(player);
+
+		databaseService.updatePlayer(player);
+		synchronized(playerMap)
+		{
+			playerMap.remove(player);
+		}
 	}
 	
-	public ClientSession getSession(Player player){
+	public ClientSession getSession(PlayerModel player){
 		return playerMap.get(player);
 	}
 	
-	private static HashMap<Player, ClientSession> playerMap;
+	private static HashMap<PlayerModel, ClientSession> playerMap;
 
 	@Override
 	public void executeEvent(Event event) {
 		
 		ClientSession session = (ClientSession)event.getSource();
-		Player player = session.getPlayer();
+		PlayerModel player = session.getPlayer();
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		player.setLastLogoutTime(timestamp);
-		JSONObject playerObj = player.export_data();
-		App.getInstance().getDbService().updatePlayer(playerObj);
-		playerMap.remove(player);
+		databaseService.updatePlayer(player);
+		synchronized(playerMap)
+		{
+			playerMap.remove(player);
+		}
 	}
 }

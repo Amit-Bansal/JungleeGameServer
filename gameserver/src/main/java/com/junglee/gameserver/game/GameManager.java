@@ -2,45 +2,62 @@ package com.junglee.gameserver.game;
 
 import java.util.HashMap;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.junglee.dbservice.model.GameModel;
+import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.dbservice.service.DatabaseService;
-import com.junglee.gameserver.application.App;
 import com.junglee.gameserver.event.Event;
+import com.junglee.gameserver.event.EventDispatcher;
 import com.junglee.gameserver.event.EventListener;
-import com.junglee.gameserver.player.Player;
 import com.junglee.gameserver.table.Table;
 
 @Component
 public class GameManager implements EventListener{
+		
+	@Autowired
+	EventDispatcher eventDispatcher;
 	
 	@Autowired
 	DatabaseService databaseService;
 	
 	public GameManager() {
+		gamesTableMap = new HashMap<GameModel, Table>();
 	}
-
 	
-	public Game startGame(Table table) {
-		Game game = new Game();		
-		gamesTableMap.put(game, table);
-		game.startGame();
+
+	public GameModel startGame(Table table) {
+		GameModel game = new GameModel();
+		GameTimer timer = new GameTimer(game);
 		
-		JSONObject gameObj = game.export_data();
-		App.getInstance().getDbService().persistGame(gameObj);
+		synchronized(gamesTableMap)
+		{
+			gamesTableMap.put(game, table);
+		}
+
+		databaseService.persistGame(game);
+		
+		timer.startGame();
 		return game;
 	}
 	
-	public void endGame(Game game) {
-		Table table = gamesTableMap.get(game);
-		for (Player player:table.getPlayerList())
+	public void endGame(GameModel game) {
+		
+		Table table;
+		synchronized(gamesTableMap)
+		{
+			table = gamesTableMap.get(game);
+		}
+		for (PlayerModel player:table.getPlayerList())
 		    player.incrementGamesPlayed();
 		
-		JSONObject gameObj = game.export_data();
-		databaseService.updateGame(gameObj);
-		gamesTableMap.remove(game);
+		databaseService.updateGame(game);
+		
+		synchronized(gamesTableMap)
+		{
+			gamesTableMap.remove(game);
+		}
 	}
 	
 	@Override
@@ -48,5 +65,5 @@ public class GameManager implements EventListener{
 		
 	}
 	
-	private static HashMap<Game, Table> gamesTableMap;
+	private static HashMap<GameModel, Table> gamesTableMap;
 }

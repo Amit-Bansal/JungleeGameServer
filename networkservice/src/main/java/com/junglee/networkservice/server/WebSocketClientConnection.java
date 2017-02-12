@@ -1,27 +1,31 @@
 package com.junglee.networkservice.server;
 
 
+import java.io.IOException;
+
 import com.junglee.networkservice.ClientConnection;
 import com.junglee.networkservice.ClientEventDispatcher;
 import com.junglee.networkservice.ConnectionContext;
 
+import javax.websocket.Session;
 
 public class WebSocketClientConnection implements ClientConnection{
 	
-	public WebSocketClientConnection(ConnectionContext context){
-		connectionContext = context;
-		//other DS initializations
+	public WebSocketClientConnection(Session session){
+		this.session = session;
 	}
 	
 	@Override
 	public void sendMessage(String msg) {
-		connectionContext.sendMessage(msg);
-		System.out.println("Inside sendMessage");
+		try {
+			session.getBasicRemote().sendText(msg);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
-	public void receiveMessage(){
-		String msg = connectionContext.readMessage();
+	public void receiveMessage(String msg){
 		ClientEventDispatcher.getInstance().handleMessage(this, msg);
 	}
 	
@@ -30,6 +34,6 @@ public class WebSocketClientConnection implements ClientConnection{
 		ClientEventDispatcher.getInstance().handleConnectionClose(this);
 	}
 	
-	private ConnectionContext connectionContext;
+	private Session session;
 
 }

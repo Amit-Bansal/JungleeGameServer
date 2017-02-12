@@ -2,16 +2,26 @@ package com.junglee.gameserver.session;
 
 import java.util.HashMap;
 
-import com.junglee.gameserver.application.App;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.junglee.gameserver.event.Event;
+import com.junglee.gameserver.event.EventDispatcher;
 import com.junglee.gameserver.event.EventType;
 import com.junglee.gameserver.message.Message;
+import com.junglee.gameserver.task.TaskScheduler;
 import com.junglee.networkservice.*;
 
-
+@Component
 public class SessionManager extends ClientInterface{
 	
-	public SessionManager() {}
+	@Autowired
+	EventDispatcher eventDispatcher;
+	
+	@Autowired
+	@Qualifier("schedulerService")
+	TaskScheduler taskScheduler;
 		
 
 	public void handleMessage(ClientConnection connection, String msgStr){
@@ -19,14 +29,14 @@ public class SessionManager extends ClientInterface{
 		ClientSession session = clientSession.get(connection);
 		session.setCurrentMsg(msg);
 		
-		App.getInstance().getTaskScheduler().processTask(session);
+		taskScheduler.processTask(session);
 	}
 	
 	public void handleConnectionClose(ClientConnection connection){
 		ClientSession session = clientSession.get(connection);
 		session.handleClose();
 		Event connectionCloseEvent = new Event(session, EventType.ClientDisconnected);
-		App.getInstance().getEventDispather().submit(connectionCloseEvent);
+		eventDispatcher.submit(connectionCloseEvent);
 	}
 	
 	public ClientSession createSession(ClientConnection connection){
@@ -46,6 +56,4 @@ public class SessionManager extends ClientInterface{
 	}
 	
 	private HashMap<ClientConnection, ClientSession> clientSession;
-
-
 }

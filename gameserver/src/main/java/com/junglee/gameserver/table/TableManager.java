@@ -1,23 +1,29 @@
 package com.junglee.gameserver.table;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
+import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.gameserver.event.Event;
 import com.junglee.gameserver.event.EventListener;
-import com.junglee.gameserver.player.*;
 import com.junglee.gameserver.session.ClientSession;
 
+@Component
 public class TableManager implements EventListener{
 	
 	public TableManager() {
-	}
+		playerTableMap = new HashMap<PlayerModel, Table>();
+		currentTables = new ArrayList<Table>();
+;	}
 
 	
 	public static final int MaxPlayersLimit = 5;
 	public static final int MinPlayersLimit = 3;
 	
-	public  void joinPlayerToTable(Player player) {
+	public  void joinPlayerToTable(PlayerModel player) {
 		Table table = getWaitingTable();
 		if (table == null || table.getPlayerCount() >= MaxPlayersLimit) {
 			table = createTable();
@@ -29,7 +35,7 @@ public class TableManager implements EventListener{
 		table.sendMessageToPlayers(broadcastMsg);
 	}
 		
-	public void leavePlayerFromTable(Player player) {
+	public void leavePlayerFromTable(PlayerModel player) {
 		Table table = playerTableMap.get(player);
 		removePlayerFromTable(player, table);
 		//BroadCast message to all players of current table
@@ -37,7 +43,7 @@ public class TableManager implements EventListener{
 		table.sendMessageToPlayers(broadcastMsg);
 	}
 	
-	public void handlePlayerLogout(Player player) {
+	public void handlePlayerLogout(PlayerModel player) {
 		if(playerTableMap.containsKey(player)){
 			Table table = playerTableMap.get(player);
 			removePlayerFromTable(player, table);
@@ -50,7 +56,7 @@ public class TableManager implements EventListener{
 	@Override
 	public void executeEvent(Event event) {
 		ClientSession session = (ClientSession)event.getSource();
-		Player player = session.getPlayer();
+		PlayerModel player = session.getPlayer();
 		if(playerTableMap.containsKey(player)){
 			Table table = playerTableMap.get(player);
 			removePlayerFromTable(player, table);
@@ -60,7 +66,7 @@ public class TableManager implements EventListener{
 		}
 	}
 	
-	private void removePlayerFromTable(Player player, Table table){
+	private void removePlayerFromTable(PlayerModel player, Table table){
 		table.removePlayer(player);
 		if (table.getPlayerCount() == 0) {
 			destroyTable(table);
@@ -82,7 +88,7 @@ public class TableManager implements EventListener{
 		table.setCurrentState(state);
 	}
 	
-	private void addPlayerToTable(Table table, Player player) {
+	private void addPlayerToTable(Table table, PlayerModel player) {
 		table.joinPlayer(player);
 	}
 	
@@ -96,6 +102,6 @@ public class TableManager implements EventListener{
 		return null;
 	}	
 	
-	private HashMap<Player, Table> playerTableMap;
+	private HashMap<PlayerModel, Table> playerTableMap;
 	private  List<Table> currentTables;
 }

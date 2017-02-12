@@ -3,7 +3,9 @@
   <groupId>junglee</groupId>
   <artifactId>gameserver</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  
+     <properties>
+		<jetty.version>9.2.11.v20150529</jetty.version>
+	</properties>
 
   <dependencies>
     <dependency>
@@ -28,4 +30,16 @@
 	
 	
   </dependencies>
+  
+  
+  
+  	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty.version}</version>
+			</plugin>
+		</plugins>
+	</build>
 </project>

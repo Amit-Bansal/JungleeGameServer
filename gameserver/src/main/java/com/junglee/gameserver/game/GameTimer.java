@@ -4,11 +4,18 @@ package com.junglee.gameserver.game;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.junglee.gameserver.application.App;
+import com.junglee.dbservice.model.GameModel;
 
-public class Game {
+public class GameTimer {
+
+	@Autowired
+	GameManager gameManager;
+	
+	public GameTimer(GameModel game){
+		this.game = game;
+	}
 	
 	public void startGame() {
 		timer = new Timer();
@@ -23,22 +30,13 @@ public class Game {
 	public void gameTimeout() {
 		timer.cancel();
 		
-		App.getInstance().getGameManager().endGame(this);
+		gameManager.endGame(game);
 	}
 	
-		
-	public int getGameId() {
-		return gameId;
+	public GameModel getGameId() {
+		return game;
 	}
 	
-	public void import_data(JSONObject data){
-		
-	}
-	
-	public JSONObject export_data(){
-		return null;
-	}
-
 	private Timer timer;
-	private int gameId;
+	private GameModel game;
 }

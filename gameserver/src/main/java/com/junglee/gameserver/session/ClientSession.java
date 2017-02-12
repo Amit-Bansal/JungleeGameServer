@@ -1,14 +1,24 @@
 package com.junglee.gameserver.session;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.gameserver.player.*;
-import com.junglee.gameserver.application.App;
 import com.junglee.gameserver.message.*;
+import com.junglee.gameserver.table.TableManager;
 import com.junglee.gameserver.task.Task;
 import com.junglee.networkservice.ClientConnection;
 
 
 public class ClientSession extends Task {
+	
+	@Autowired
+	PlayerManager playerManager;
+	
+	@Autowired
+	TableManager tableManager;
+	
 	enum Status
 	{
 		NOT_CONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, CLOSED
@@ -33,7 +43,7 @@ public class ClientSession extends Task {
 			case USER_SIGNUP:{
 				SignupMessage msg = (SignupMessage)currentMsg;
 				SignupResponse response = new SignupResponse();
-				if(App.getInstance().getPlayerManager().signup(msg.id, msg.name, msg.password))
+				if (playerManager.signup(msg.id, msg.name, msg.password))
 					response.msg = "Account created successfully";
 				else
 					response.msg = "Could not signup";
@@ -42,7 +52,7 @@ public class ClientSession extends Task {
 			}
 			case USER_LOGIN:{
 				LoginMessage msg = (LoginMessage)currentMsg;
-				player = App.getInstance().getPlayerManager().loginPlayer(msg.id, msg.password, this);
+				player = playerManager.loginPlayer(msg.id, msg.password, this);
 				LoginResponse response = new LoginResponse();
 				if (player == null){
 					response.code = 401;
@@ -55,21 +65,21 @@ public class ClientSession extends Task {
 				break;
 			}
 			case USER_LOGOUT:{
-				App.getInstance().getTableManager().handlePlayerLogout(player);
-				App.getInstance().getPlayerManager().logoutPlayer(player);
+				tableManager.handlePlayerLogout(player);
+				playerManager.logoutPlayer(player);
 				status = Status.CONNECTED;
 				player = null;
 				break;
 			}
 			case JOIN_TABLE:{
 				//JoinTableMessage msg = (JoinTableMessage)currentMsg;
-				App.getInstance().getTableManager().joinPlayerToTable(player);
+				tableManager.joinPlayerToTable(player);
 				
 				break;
 			}
 			case LEAVE_TABLE:{
 				//LeaveTableMessage msg = (LeaveTableMessage)currentMsg;
-				App.getInstance().getTableManager().leavePlayerFromTable(player);
+				tableManager.leavePlayerFromTable(player);
 				break;
 			}
 			default:
@@ -108,11 +118,11 @@ public class ClientSession extends Task {
 		this.status = status;
 	}
 
-	public Player getPlayer() {
+	public PlayerModel getPlayer() {
 		return player;
 	}
 
-	public void setPlayer(Player player) {
+	public void setPlayer(PlayerModel player) {
 		this.player = player;
 	}
 
@@ -120,5 +130,5 @@ public class ClientSession extends Task {
 	private ClientConnection handler;
 	private int sessionId;
 	private Message currentMsg;
-	private Player player;
+	private PlayerModel player;
 }

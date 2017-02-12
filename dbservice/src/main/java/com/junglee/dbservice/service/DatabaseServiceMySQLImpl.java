@@ -5,9 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.junglee.dbservice.dao.PlayerDAO;
+import com.junglee.dbservice.model.GameModel;
 import com.junglee.dbservice.model.PlayerModel;
 
-import org.json.*;
+
 
 @Service("databaseServiceMySQLImpl")
 public class DatabaseServiceMySQLImpl implements DatabaseService{
@@ -17,63 +18,46 @@ public class DatabaseServiceMySQLImpl implements DatabaseService{
 		
 	@Override
 	@Transactional
-	public void persistPlayer(JSONObject playerJson) {
-		PlayerModel player = new PlayerModel();
-		player.import_data(playerJson);
+	public void persistPlayer(PlayerModel player) {
 		playerDAO.persistPlayer(player);
 	}
 
 	@Override
 	@Transactional
-	public void updatePlayer(JSONObject playerObj) {
-		PlayerModel player = null;
-		try {
-			player = playerDAO.findPlayerById(playerObj.getString("id"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public void updatePlayer(PlayerModel player) {
 		playerDAO.updatePlayer(player);
 	}
 	
 	@Override
 	@Transactional
-	public JSONObject findPlayerById(String id) {
+	public PlayerModel findPlayerById(String id) {
 		PlayerModel player = playerDAO.findPlayerById(id);
-		return player.export_data();
+		return player;
 	}
 
 	@Override
 	@Transactional
-	public void deletePlayer(JSONObject playerObj) {
-		PlayerModel player = null;
-		try {
-			player = playerDAO.findPlayerById(playerObj.getString("id"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public void deletePlayer(PlayerModel player) {
 		playerDAO.deletePlayer(player);
 		
 	}
 	
 	@Override
 	@Transactional
-	public void persistGame(JSONObject game){}
+	public void persistGame(GameModel game){}
 	 
 	@Override
 	@Transactional
-	public JSONObject findGameById(String id){
-		JSONObject obj = null;
-		return obj;
+	public GameModel findGameById(String id){
+		return null;
 	}
 	
 	@Override
 	@Transactional
-	public void updateGame(JSONObject game){}
+	public void updateGame(GameModel game){}
 	
 	@Override
 	@Transactional
-	public void deleteGame(JSONObject game){}
+	public void deleteGame(GameModel game){}
 
 }

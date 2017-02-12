@@ -4,14 +4,24 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.junglee.dbservice.model.GameModel;
+import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.gameserver.player.*;
-import com.junglee.gameserver.application.App;
-import com.junglee.gameserver.game.Game;
+import com.junglee.gameserver.game.GameManager;
 import com.junglee.gameserver.message.BroadcastMessage;
 import com.junglee.gameserver.session.ClientSession;
 
 
 public class Table {
+	
+	@Autowired
+	GameManager gameManager;
+	
+	@Autowired
+	PlayerManager playerManager;
+	
 	public Table() {
 		setCurrentState(TableState.WAITING_FOR_PLAYERS);
 		gameStartFiveSecondTimer = false;
@@ -21,7 +31,7 @@ public class Table {
 	public static final int MaxPlayersLimit = 5;
 	public static final int MinPlayersLimit = 3;
 	
-	public void joinPlayer(Player player) {
+	public void joinPlayer(PlayerModel player) {
 		if (currentState == TableState.WAITING_FOR_PLAYERS) {
 			playerList.add(player);
 			if (playerList.size() >= MinPlayersLimit) {
@@ -30,10 +40,10 @@ public class Table {
 		}
 	}
 	
-	public void removePlayer(Player player) {
+	public void removePlayer(PlayerModel player) {
 		playerList.remove(player);
 		if (playerList.size() == 0) {
-			App.getInstance().getGameManager().endGame(game);
+			gameManager.endGame(game);
 			setGame(null);
 			return;
 		}
@@ -45,10 +55,10 @@ public class Table {
 	
 
 	public void sendMessageToPlayers(String msgStr) {
-		for (Player player : playerList) {
+		for (PlayerModel player : playerList) {
 			//send message through client connection
 			BroadcastMessage msg = new BroadcastMessage(msgStr);
-			ClientSession session =App.getInstance().getPlayerManager().getSession(player);
+			ClientSession session = playerManager.getSession(player);
 			msg.setSessionId(session.getSessionId());
 			session.sendMessage(msg);
 		}
@@ -91,25 +101,25 @@ public class Table {
 	
 	public void startGame() {
 		currentState = TableState.IN_GAME;
-		setGame(App.getInstance().getGameManager().startGame(this));
+		setGame(gameManager.startGame(this));
 	}
 	
-	public Game getGame() {
+	public GameModel getGame() {
 		return game;
 	}
 
-	public void setGame(Game game) {
+	public void setGame(GameModel game) {
 		this.game = game;
 	}
 	
-	public List<Player> getPlayerList() {
+	public List<PlayerModel> getPlayerList() {
 		return playerList;
 	}
 
 	private int TableID;
 	private TableState currentState;
-	private List<Player> playerList;
+	private List<PlayerModel> playerList;
 	private boolean gameStartFiveSecondTimer;
 	private Timer timer;
-	private Game game;
+	private GameModel game;
 }

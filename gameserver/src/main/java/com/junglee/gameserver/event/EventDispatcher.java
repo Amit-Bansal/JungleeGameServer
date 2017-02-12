@@ -8,7 +8,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.springframework.stereotype.Component;
 
+@Component
 public class EventDispatcher {
 
 	Executor executor;

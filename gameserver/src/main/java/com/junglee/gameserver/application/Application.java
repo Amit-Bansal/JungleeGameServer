@@ -4,6 +4,8 @@ public class Application {
 
 	public static void main(String[] args) {
 		
-		App.getInstance().startApp();
+		AppContext.loadApplicationContext("applicationContext.xml");
+		App app = (App)AppContext.getBean("app");
+		app.startApp();
 	}
 }

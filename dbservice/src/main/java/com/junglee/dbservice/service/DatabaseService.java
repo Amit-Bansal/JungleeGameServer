@@ -1,19 +1,20 @@
 package com.junglee.dbservice.service;
 
-import org.json.*;
+import com.junglee.dbservice.model.GameModel;
+import com.junglee.dbservice.model.PlayerModel;
 
 
 
 public interface DatabaseService {
 
-	void persistPlayer(JSONObject player);
-	JSONObject findPlayerById(String id);
-	void updatePlayer(JSONObject player);
-	void deletePlayer(JSONObject player);
+	void persistPlayer(PlayerModel player);
+	PlayerModel findPlayerById(String id);
+	void updatePlayer(PlayerModel player);
+	void deletePlayer(PlayerModel player);
 	
 	
-	void persistGame(JSONObject game);
-	JSONObject findGameById(String id);
-	void updateGame(JSONObject game);
-	void deleteGame(JSONObject game);
+	void persistGame(GameModel game);
+	GameModel findGameById(String id);
+	void updateGame(GameModel game);
+	void deleteGame(GameModel game);
 }
