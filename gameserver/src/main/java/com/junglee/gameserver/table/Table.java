@@ -7,11 +7,12 @@ import java.util.TimerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.junglee.dbservice.model.GameModel;
-import com.junglee.dbservice.model.PlayerModel;
+
 import com.junglee.gameserver.player.*;
 import com.junglee.gameserver.game.GameManager;
 import com.junglee.gameserver.message.BroadcastMessage;
-import com.junglee.gameserver.session.ClientSession;
+
+import com.junglee.networkservice.ClientConnection;
 
 
 public class Table {
@@ -31,7 +32,7 @@ public class Table {
 	public static final int MaxPlayersLimit = 5;
 	public static final int MinPlayersLimit = 3;
 	
-	public void joinPlayer(PlayerModel player) {
+	public void joinPlayer(ClientConnection player) {
 		if (currentState == TableState.WAITING_FOR_PLAYERS) {
 			playerList.add(player);
 			if (playerList.size() >= MinPlayersLimit) {
@@ -40,7 +41,7 @@ public class Table {
 		}
 	}
 	
-	public void removePlayer(PlayerModel player) {
+	public void removePlayer(ClientConnection player) {
 		playerList.remove(player);
 		if (playerList.size() == 0) {
 			gameManager.endGame(game);
@@ -55,12 +56,17 @@ public class Table {
 	
 
 	public void sendMessageToPlayers(String msgStr) {
-		for (PlayerModel player : playerList) {
+		for (ClientConnection connection : playerList) {
 			//send message through client connection
 			BroadcastMessage msg = new BroadcastMessage(msgStr);
-			ClientSession session = playerManager.getSession(player);
-			msg.setSessionId(session.getSessionId());
-			session.sendMessage(msg);
+			String message = msg.serialize();
+			connection.sendMessage(message);
+		}
+	}
+	
+	public void incrementPlayersGamesCount(){
+		for (ClientConnection connection:playerList){
+			playerManager.incrementPlayerGameCount(connection);
 		}
 	}
 	
@@ -112,13 +118,13 @@ public class Table {
 		this.game = game;
 	}
 	
-	public List<PlayerModel> getPlayerList() {
+	public List<ClientConnection> getPlayerList() {
 		return playerList;
 	}
 
 	private int TableID;
 	private TableState currentState;
-	private List<PlayerModel> playerList;
+	private List<ClientConnection> playerList;
 	private boolean gameStartFiveSecondTimer;
 	private Timer timer;
 	private GameModel game;

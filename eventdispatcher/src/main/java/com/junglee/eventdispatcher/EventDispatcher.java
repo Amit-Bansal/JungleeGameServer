@@ -1,4 +1,4 @@
-package com.junglee.gameserver.event;
+package com.junglee.eventdispatcher;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -37,6 +37,8 @@
     p:sessionFactory-ref="sessionFactory">
   </bean>
   
+    <bean id="databaseService" class="com.junglee.dbservice.service.DatabaseServiceMySQLImpl">
+    </bean> 
   
   
 </beans>

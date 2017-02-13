@@ -18,16 +18,6 @@ public class Message {
 	}
 	
 	
-	public int getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(int sessionId) {
-		this.sessionId = sessionId;
-	}
-
-	private int sessionId;
-
 	private MessageType type;
 }
 

@@ -2,6 +2,7 @@ package com.junglee.gameserver.session;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.gameserver.player.*;
@@ -19,24 +20,20 @@ public class ClientSession extends Task {
 	@Autowired
 	TableManager tableManager;
 	
+	private Status status;
+	private ClientConnection connection;
+	private Message currentMsg;
+	
 	enum Status
 	{
 		NOT_CONNECTED, CONNECTING, CONNECTED, AUTHENTICATED, CLOSED
 	}
 	
-	public ClientSession(ClientConnection connection){
-		handler = connection;
+	public ClientSession(ClientConnection clientCconnection){
+		connection = clientCconnection;
 		setStatus(Status.CONNECTED);
-		player = null;
 	}
-	
-	public int getSessionId() {
-		return sessionId;
-	}
-	public void setSessionId(int sessionId) {
-		this.sessionId = sessionId;
-	}
-	
+		
 	@Override
 	public void process() {
 		switch(currentMsg.getType()){
@@ -52,7 +49,7 @@ public class ClientSession extends Task {
 			}
 			case USER_LOGIN:{
 				LoginMessage msg = (LoginMessage)currentMsg;
-				player = playerManager.loginPlayer(msg.id, msg.password, this);
+				PlayerModel player = playerManager.loginPlayer(msg.id, msg.password, connection);
 				LoginResponse response = new LoginResponse();
 				if (player == null){
 					response.code = 401;
@@ -65,21 +62,20 @@ public class ClientSession extends Task {
 				break;
 			}
 			case USER_LOGOUT:{
-				tableManager.handlePlayerLogout(player);
-				playerManager.logoutPlayer(player);
+				tableManager.handlePlayerLogout(connection);
+				playerManager.logoutPlayer(connection);
 				status = Status.CONNECTED;
-				player = null;
 				break;
 			}
 			case JOIN_TABLE:{
 				//JoinTableMessage msg = (JoinTableMessage)currentMsg;
-				tableManager.joinPlayerToTable(player);
+				tableManager.joinPlayerToTable(connection);
 				
 				break;
 			}
 			case LEAVE_TABLE:{
 				//LeaveTableMessage msg = (LeaveTableMessage)currentMsg;
-				tableManager.leavePlayerFromTable(player);
+				tableManager.leavePlayerFromTable(connection);
 				break;
 			}
 			default:
@@ -87,14 +83,9 @@ public class ClientSession extends Task {
 		}		
 	}
 	
-	public void handleClose(){
-		status = Status.NOT_CONNECTED;
-		player = null;
-	}
 	
 	public void handleDisconnected(){
 		status = Status.NOT_CONNECTED;
-		player = null;
 	}
 	
 	public Message getCurrentMsg() {
@@ -107,7 +98,7 @@ public class ClientSession extends Task {
 	
 	public void sendMessage(Message msg){
 		String msgStr = msg.serialize();
-		handler.sendMessage(msgStr);
+		connection.sendMessage(msgStr);
 	}
 
 	public Status getStatus() {
@@ -118,17 +109,4 @@ public class ClientSession extends Task {
 		this.status = status;
 	}
 
-	public PlayerModel getPlayer() {
-		return player;
-	}
-
-	public void setPlayer(PlayerModel player) {
-		this.player = player;
-	}
-
-	private Status status;
-	private ClientConnection handler;
-	private int sessionId;
-	private Message currentMsg;
-	private PlayerModel player;
 }

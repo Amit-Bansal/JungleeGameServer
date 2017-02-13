@@ -10,15 +10,16 @@ import org.springframework.stereotype.Component;
 
 import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.dbservice.service.DatabaseService;
-import com.junglee.gameserver.event.Event;
-import com.junglee.gameserver.event.EventListener;
-import com.junglee.gameserver.session.ClientSession;
+import com.junglee.eventdispatcher.*;
+import com.junglee.networkservice.ClientConnection;
 
 @Component
 public class PlayerManager implements EventListener{
 		
 	@Autowired
 	DatabaseService databaseService;
+	
+	private static HashMap<ClientConnection, PlayerModel> playerMap;
 	
 	public boolean signup(String id, String name, String password){
 		PlayerModel player = new PlayerModel();
@@ -33,13 +34,13 @@ public class PlayerManager implements EventListener{
 		return player;
 	}
 	
-	public PlayerModel loginPlayer(String id, String password, ClientSession session){
+	public PlayerModel loginPlayer(String id, String password, ClientConnection connection){
 		//verify player credentials - to do
 		PlayerModel player = loadPlayer(id);
 		if (player != null){
 			synchronized(playerMap)
 			{
-				playerMap.put(player, session);
+				playerMap.put(connection, player);
 			}
 			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 			player.setLastLoginTime(timestamp);
@@ -48,34 +49,42 @@ public class PlayerManager implements EventListener{
 
 	}
 	
-	public void logoutPlayer(PlayerModel player){
+	public void logoutPlayer(ClientConnection connection){
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		
+		PlayerModel player = playerMap.get(connection);
 		player.setLastLogoutTime(timestamp);
 
 		databaseService.updatePlayer(player);
 		synchronized(playerMap)
 		{
-			playerMap.remove(player);
+			playerMap.remove(connection);
 		}
 	}
 	
-	public ClientSession getSession(PlayerModel player){
-		return playerMap.get(player);
+	public PlayerModel getPlayer(ClientConnection connection){
+		return playerMap.get(connection);
 	}
 	
-	private static HashMap<PlayerModel, ClientSession> playerMap;
-
+	public void incrementPlayerGameCount(ClientConnection connection){
+		PlayerModel player = getPlayer(connection);
+		player.incrementGamesPlayed();
+	}
+	
 	@Override
 	public void executeEvent(Event event) {
-		
-		ClientSession session = (ClientSession)event.getSource();
-		PlayerModel player = session.getPlayer();
-		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-		player.setLastLogoutTime(timestamp);
-		databaseService.updatePlayer(player);
-		synchronized(playerMap)
-		{
-			playerMap.remove(player);
+		ClientConnection connection = (ClientConnection)event.getSource();
+	    if (event.getType() == EventType.ClientDisconnected){
+	    	if(playerMap.containsKey(connection)){    		
+				PlayerModel player = playerMap.get(connection);
+				Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+				player.setLastLogoutTime(timestamp);
+				databaseService.updatePlayer(player);
+				synchronized(playerMap)
+				{
+					playerMap.remove(connection);
+				}
+	    	}
 		}
 	}
 }

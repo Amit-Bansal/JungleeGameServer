@@ -2,8 +2,7 @@ package com.junglee.networkservice.server;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -12,12 +11,20 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import com.junglee.networkservice.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+
+import com.junglee.eventdispatcher.*;
+import com.junglee.networkservice.ClientConnection;
+import com.junglee.networkservice.ConnectionManager;
 
 @ServerEndpoint("/gameServer")
 public class WebSocketConnectionManager implements ConnectionManager {
+	
+	@Autowired
+	EventDispatcher eventDispatcher;
 
-	private List<ConnectionInterface> handlers = new ArrayList<ConnectionInterface>();
+	private HashMap<String, ClientConnection> sessionMap = new HashMap<String, ClientConnection>();
 
 	@OnOpen
 	public void onOpen(Session session) {
@@ -26,13 +33,15 @@ public class WebSocketConnectionManager implements ConnectionManager {
 	}
 	
 	@OnMessage
-	public void onMessage(String txt, Session session) throws IOException {
-
+	public void onMessage(String msg, Session session) throws IOException {
+		ClientConnection clientConnection = sessionMap.get(session.getId());
+		handleMessage(clientConnection, msg);
 	}
 
 	@OnClose
 	public void onClose(CloseReason reason, Session session) {
-		handleDisconnected();
+		ClientConnection clientConnection = sessionMap.get(session.getId());
+		handleDisconnected(clientConnection);
 	}
 	
 	
@@ -44,19 +53,20 @@ public class WebSocketConnectionManager implements ConnectionManager {
 	
 	@Override
 	public void handleConnection(ClientConnection connection) {
-		for(ConnectionInterface handler : handlers)   
-			handler.handleConnection(connection);
+		Event event = new Event(connection, EventType.ClientConnected);
+		eventDispatcher.submit(event);
 	}
 	
 	@Override
-	public void handleDisconnected() {		
-		for(ConnectionInterface handler : handlers)   
-			handler.handleDisconnected();
-	}
-	
-	@Override
-	public void registerHandler(ConnectionInterface handler) {
-		handlers.add(handler);
+	public void handleDisconnected(ClientConnection clientConnection) {
+		Event event = new Event(clientConnection, EventType.ClientDisconnected);
+		eventDispatcher.submit(event);
 	}
 
+	@Override
+	public void handleMessage(ClientConnection connection, String message) {
+		Event event = new Event(connection, EventType.MessageReceived);
+		event.setMessage(message);
+		eventDispatcher.submit(event);
+	}
 }

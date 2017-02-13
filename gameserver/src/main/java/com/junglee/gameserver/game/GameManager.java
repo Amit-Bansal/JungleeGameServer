@@ -6,11 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.junglee.dbservice.model.GameModel;
-import com.junglee.dbservice.model.PlayerModel;
 import com.junglee.dbservice.service.DatabaseService;
-import com.junglee.gameserver.event.Event;
-import com.junglee.gameserver.event.EventDispatcher;
-import com.junglee.gameserver.event.EventListener;
+import com.junglee.eventdispatcher.*;
+
 import com.junglee.gameserver.table.Table;
 
 @Component
@@ -49,8 +47,8 @@ public class GameManager implements EventListener{
 		{
 			table = gamesTableMap.get(game);
 		}
-		for (PlayerModel player:table.getPlayerList())
-		    player.incrementGamesPlayed();
+
+		table.incrementPlayersGamesCount();
 		
 		databaseService.updateGame(game);
 		

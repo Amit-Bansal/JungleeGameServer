@@ -6,15 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.junglee.gameserver.event.Event;
-import com.junglee.gameserver.event.EventDispatcher;
-import com.junglee.gameserver.event.EventType;
+import com.junglee.eventdispatcher.*;
 import com.junglee.gameserver.message.Message;
 import com.junglee.gameserver.task.TaskScheduler;
 import com.junglee.networkservice.*;
 
 @Component
-public class SessionManager extends ClientInterface{
+public class SessionManager implements EventListener{
 	
 	@Autowired
 	EventDispatcher eventDispatcher;
@@ -22,38 +20,37 @@ public class SessionManager extends ClientInterface{
 	@Autowired
 	@Qualifier("schedulerService")
 	TaskScheduler taskScheduler;
+	
+	@Autowired
+	private ConnectionManager manager;
+	
+	private HashMap<ClientConnection, ClientSession> clientSessionMap;
 		
-
+		
+	public ClientSession getSession(ClientConnection connection){
+		return clientSessionMap.get(connection);
+	}
+	
 	public void handleMessage(ClientConnection connection, String msgStr){
 		Message msg = Message.deserialize(msgStr);
-		ClientSession session = clientSession.get(connection);
+		ClientSession session = clientSessionMap.get(connection);
 		session.setCurrentMsg(msg);
-		
 		taskScheduler.processTask(session);
 	}
 	
-	public void handleConnectionClose(ClientConnection connection){
-		ClientSession session = clientSession.get(connection);
-		session.handleClose();
-		Event connectionCloseEvent = new Event(session, EventType.ClientDisconnected);
-		eventDispatcher.submit(connectionCloseEvent);
+	@Override
+	public void executeEvent(Event event) {
+		ClientConnection connection = (ClientConnection)event.getSource();
+		if (event.getType() == EventType.ClientConnected){
+			ClientSession session = new ClientSession(connection);
+			clientSessionMap.put(connection, session);
+		}
+		else if (event.getType() == EventType.ClientDisconnected){
+			ClientSession session = clientSessionMap.get(connection);
+			session.handleDisconnected();
+		}
+		else if (event.getType() == EventType.MessageReceived){
+			handleMessage(connection, event.getMessage());
+		}
 	}
-	
-	public ClientSession createSession(ClientConnection connection){
-		
-		ClientSession session = new ClientSession(connection);
-		clientSession.put(connection, session);
-		return session;
-	}
-	
-	public ClientSession getSession(int sessionId){
-		
-		return clientSession.get(sessionId);
-	}
-	
-	public void register(){
-		ClientEventDispatcher.getInstance().registerHandler(this);
-	}
-	
-	private HashMap<ClientConnection, ClientSession> clientSession;
 }

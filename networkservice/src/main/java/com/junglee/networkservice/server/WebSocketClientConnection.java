@@ -4,8 +4,7 @@ package com.junglee.networkservice.server;
 import java.io.IOException;
 
 import com.junglee.networkservice.ClientConnection;
-import com.junglee.networkservice.ClientEventDispatcher;
-import com.junglee.networkservice.ConnectionContext;
+
 
 import javax.websocket.Session;
 
@@ -24,15 +23,6 @@ public class WebSocketClientConnection implements ClientConnection{
 		}
 	}
 	
-	@Override
-	public void receiveMessage(String msg){
-		ClientEventDispatcher.getInstance().handleMessage(this, msg);
-	}
-	
-	@Override
-	public void handleConnectionClose(){
-		ClientEventDispatcher.getInstance().handleConnectionClose(this);
-	}
 	
 	private Session session;
 

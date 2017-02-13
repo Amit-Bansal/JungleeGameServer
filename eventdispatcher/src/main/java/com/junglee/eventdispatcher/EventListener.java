@@ -1,4 +1,4 @@
-package com.junglee.gameserver.event;
+package com.junglee.eventdispatcher;
 
 public interface EventListener {
 	

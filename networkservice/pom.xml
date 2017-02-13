@@ -11,6 +11,26 @@
 	</properties>
 
 	<dependencies>
+	
+	    <dependency>
+		   <groupId>junglee</groupId>
+		   <artifactId>eventdispatcher</artifactId>
+		   <version>0.0.1-SNAPSHOT</version>
+	   </dependency>
+	   
+<dependency>
+    <groupId>javax.json</groupId>
+    <artifactId>javax.json-api</artifactId>
+    <version>1.0</version>
+</dependency>
+
+   <dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.4.4</version>
+  </dependency>
+  
+		
 		<!--Jetty dependencies start here -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>

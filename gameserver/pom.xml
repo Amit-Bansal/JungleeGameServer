@@ -8,6 +8,14 @@
 	</properties>
 
   <dependencies>
+  
+  
+    <dependency>
+	   <groupId>junglee</groupId>
+	   <artifactId>eventdispatcher</artifactId>
+	   <version>0.0.1-SNAPSHOT</version>
+	</dependency>
+	
     <dependency>
 	   <groupId>junglee</groupId>
 	   <artifactId>dbservice</artifactId>

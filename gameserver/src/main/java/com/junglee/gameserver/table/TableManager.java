@@ -4,18 +4,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.junglee.dbservice.model.PlayerModel;
-import com.junglee.gameserver.event.Event;
-import com.junglee.gameserver.event.EventListener;
-import com.junglee.gameserver.session.ClientSession;
+import com.junglee.eventdispatcher.*;
+import com.junglee.gameserver.player.PlayerManager;
+import com.junglee.networkservice.ClientConnection;
 
 @Component
 public class TableManager implements EventListener{
 	
+	@Autowired
+	PlayerManager playerManager;
+	
 	public TableManager() {
-		playerTableMap = new HashMap<PlayerModel, Table>();
+		playerTableMap = new HashMap<ClientConnection, Table>();
 		currentTables = new ArrayList<Table>();
 ;	}
 
@@ -23,31 +27,35 @@ public class TableManager implements EventListener{
 	public static final int MaxPlayersLimit = 5;
 	public static final int MinPlayersLimit = 3;
 	
-	public  void joinPlayerToTable(PlayerModel player) {
+	public  void joinPlayerToTable(ClientConnection connection) {
 		Table table = getWaitingTable();
 		if (table == null || table.getPlayerCount() >= MaxPlayersLimit) {
 			table = createTable();
 		}
-		playerTableMap.put(player, table);
-		addPlayerToTable(table, player);
+		playerTableMap.put(connection, table);
+		addPlayerToTable(table, connection);
+		
+		PlayerModel player = playerManager.getPlayer(connection);
 		//BroadCast message to all players of current table
 		String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "joined";
 		table.sendMessageToPlayers(broadcastMsg);
 	}
 		
-	public void leavePlayerFromTable(PlayerModel player) {
-		Table table = playerTableMap.get(player);
-		removePlayerFromTable(player, table);
+	public void leavePlayerFromTable(ClientConnection connection) {
+		Table table = playerTableMap.get(connection);
+		removePlayerFromTable(connection, table);
 		//BroadCast message to all players of current table
+		PlayerModel player = playerManager.getPlayer(connection);
 		String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Left";
 		table.sendMessageToPlayers(broadcastMsg);
 	}
 	
-	public void handlePlayerLogout(PlayerModel player) {
-		if(playerTableMap.containsKey(player)){
-			Table table = playerTableMap.get(player);
-			removePlayerFromTable(player, table);
+	public void handlePlayerLogout(ClientConnection connection) {
+		if(playerTableMap.containsKey(connection)){
+			Table table = playerTableMap.get(connection);
+			removePlayerFromTable(connection, table);
 			//BroadCast message to all players of current table
+			PlayerModel player = playerManager.getPlayer(connection);
 			String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Disconnected";
 			table.sendMessageToPlayers(broadcastMsg);
 		}
@@ -55,23 +63,27 @@ public class TableManager implements EventListener{
 	
 	@Override
 	public void executeEvent(Event event) {
-		ClientSession session = (ClientSession)event.getSource();
-		PlayerModel player = session.getPlayer();
-		if(playerTableMap.containsKey(player)){
-			Table table = playerTableMap.get(player);
-			removePlayerFromTable(player, table);
-			//BroadCast message to all players of current table
-			String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Disconnected";
-			table.sendMessageToPlayers(broadcastMsg);
+		ClientConnection connection = (ClientConnection)event.getSource();
+        if (event.getType() == EventType.ClientDisconnected){
+        	if(playerTableMap.containsKey(connection)){
+        		Table table = playerTableMap.get(connection);
+    			removePlayerFromTable(connection, table);
+    			//BroadCast message to all players of current table
+    			PlayerModel player = playerManager.getPlayer(connection);
+    			String broadcastMsg = "Player with ID " + player.getId() + "and Name " + player.getName() + "Disconnected";
+    			table.sendMessageToPlayers(broadcastMsg);
+        	}
+
 		}
 	}
 	
-	private void removePlayerFromTable(PlayerModel player, Table table){
-		table.removePlayer(player);
+	
+	private void removePlayerFromTable(ClientConnection connection, Table table){
+		table.removePlayer(connection);
 		if (table.getPlayerCount() == 0) {
 			destroyTable(table);
 		}
-		playerTableMap.remove(player);
+		playerTableMap.remove(connection);
 	}
 	
 	private Table createTable() {
@@ -88,7 +100,7 @@ public class TableManager implements EventListener{
 		table.setCurrentState(state);
 	}
 	
-	private void addPlayerToTable(Table table, PlayerModel player) {
+	private void addPlayerToTable(Table table, ClientConnection player) {
 		table.joinPlayer(player);
 	}
 	
@@ -102,6 +114,6 @@ public class TableManager implements EventListener{
 		return null;
 	}	
 	
-	private HashMap<PlayerModel, Table> playerTableMap;
+	private HashMap<ClientConnection, Table> playerTableMap;
 	private  List<Table> currentTables;
 }
