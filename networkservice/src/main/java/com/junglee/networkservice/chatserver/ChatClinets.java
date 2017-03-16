@@ -36,7 +36,7 @@ public class ChatClinets {
     public void onClose(Session session, CloseReason reason, @PathParam("table-id") String tableid) throws Exception {
         List<ChatClinets> chatClients = clients.get(tableid);
         if (chatClients == null) {
-            throw new Exception("Expected a valid room");
+            throw new Exception("Expected a valid table.");
         }
         chatClients.remove(this);
     }

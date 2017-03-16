@@ -3,8 +3,11 @@ package com.junglee.gameserver.application;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+
+
 import com.junglee.eventdispatcher.EventDispatcher;
 import com.junglee.eventdispatcher.EventType;
+import com.junglee.gameserver.cache.RedisClient;
 import com.junglee.gameserver.game.GameManager;
 import com.junglee.gameserver.player.PlayerManager;
 import com.junglee.gameserver.session.SessionManager;
@@ -32,9 +35,15 @@ public class App {
 	@Autowired
     private SessionManager sessionManager;
 	
+	@Autowired
+	private RedisClient redisClient;
 	
     public void startApp() {
     	
+    	redisClient.write("events/city/rome", "Italy");
+    	System.out.println(redisClient.read("events/city/rome"));
+ 
+    	    	
     	//eventDispatcher.register(EventType.ClientConnected, gameManager);
     	//eventDispatcher.register(EventType.ClientConnected, playerManager);
     	//eventDispatcher.register(EventType.ClientConnected, tableManager);
